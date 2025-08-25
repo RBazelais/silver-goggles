@@ -12,7 +12,6 @@
 // 11) Ensure pages are accessible (keyboard focus, ARIA labels) and add `prefers-reduced-motion` support.
 // 12) Add tests for the CRUD flows (unit + integration) once the routes and API layer are implemented.
 
-import { Fragment } from 'react'
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import './App.css'
 import ShowCreators from './pages/ShowCreators'
@@ -20,68 +19,53 @@ import ViewCreator from './pages/ViewCreator'
 import EditCreator from './pages/EditCreator'
 import AddCreator from './pages/AddCreator'
 
-import React, { useState } from 'react';
+const Home = () => (
+	<div className="bottom-section">
+		<p className="no-creators-text">NO CREATORS YET 😊</p>
+	</div>
+);
 
+const Header = () => {
+	return (
+		<div className="hero-section">
+			<h1 className="main-title">CREATORVERSE</h1>
 
-const CreatorVerse = () => {
-  const [currentPage, setCurrentPage] = useState('home'); // 'home' or 'addCreator'
+			<div className="button-container">
+				<Link to="/" className="hero-button">
+					View All Creators
+				</Link>
 
-	const handleAddCreatorClick = () => {
-		setCurrentPage('addCreator');
-	};
-
-	const handleViewAllCreatorsClick = () => {
-		setCurrentPage('home');
-	};
-
-	const handleNavigateHome = () => {
-		setCurrentPage('home');
-	};
-
-	const renderContent = () => {
-		if (currentPage === 'addCreator') {
-		return <AddCreator onNavigateHome={handleNavigateHome} />;
-		}
-
-		// Default home content
-		return (
-		<div className="bottom-section">
-			<p className="no-creators-text">NO CREATORS YET 😊</p>
+				<Link to="/add-creator" className="hero-button">
+					Add A Creator
+				</Link>
+			</div>
 		</div>
-		);
-	};
+	);
+};
 
+// Layout component that wraps all pages
+const Layout = ({ children }) => {
 	return (
 		<>
-
-		<div className="app-container">
-			{/* Header Section - Always visible */}
-			<header className="hero-section">
-				<h1 className="main-title">CREATORVERSE</h1>
-				
-				<div className="button-container">
-					<button 
-					className="hero-button"
-					onClick={handleViewAllCreatorsClick}
-					>
-					View All Creators
-					</button>
-					
-					<button 
-					className="hero-button"
-					onClick={handleAddCreatorClick}
-					>
-					Add A Creator
-					</button>
-				</div>
-			</header>
-			
-			<div className="divider-line"></div>
-			
-			{/* Dynamic Content Area */}
-			{renderContent()}
-		</div>
+			<div className="app-container">
+				<Header />
+				<div className="divider-line"></div>
+				{children}
+			</div>
 		</>
+	);
+};
+
+const CreatorVerse = () => {
+	return (
+		<Router>
+			<Layout>
+				<Routes>
+					<Route path="/" element={<Home />} />
+					<Route path="/add-creator" element={ <AddCreator />} />
+				</Routes>
+			</Layout>
+		</Router>
 	);
 };
 
