@@ -5,6 +5,15 @@
    - Add CSS variables for colors and fonts in :root
 */
 
+/* Load local TTF for headings used by the hero title */
+@font-face {
+	font-family: "TT Rounds ExtraBold";
+	src: url("./assets/TT Rounds Neue Trial ExtraBold.ttf") format("truetype");
+	font-weight: 800;
+	font-style: normal;
+	font-display: swap;
+}
+
 * {
 	margin: 0;
 	padding: 0;
@@ -59,8 +68,11 @@ body {
 }
 
 .main-title {
+	/* Heading font variable (uses local TTF above) */
+	--heading-font: "TT Rounds ExtraBold", 'Arial Black', Arial, sans-serif;
+
 	font-family:
-		"TT Rounds Neue Black",
+		var(--heading-font),
 		"TT Rounds Neue",
 		"Oswald",
 		"Impact",

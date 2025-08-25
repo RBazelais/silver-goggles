@@ -1,62 +1,157 @@
-// TODO (priority-ordered checklist):
-// This page implements items 1-4 of the checklist using a local mock fetch. Replace with real API calls later.
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { getCreators } from "../supabaseClient";
+import "./ShowCreators.css";
 
-import React, { useEffect, useState } from 'react'
-import Card from '../components/Card'
-import './ShowCreators.css'
-import { Link } from 'react-router-dom'
+const ShowCreators = () => {
+	const [creators, setCreators] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
 
-const MOCK_API = '/api/mock-creators.json'
+	useEffect(() => {
+		fetchCreators();
+	}, []);
 
-export default function ShowCreators() {
-  const [creators, setCreators] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+	const fetchCreators = async () => {
+		try {
+			setLoading(true);
+			const { data, error } = await getCreators();
 
-  useEffect(() => {
-    let mounted = true
-    async function fetchCreators() {
-      setLoading(true)
-      try {
-        // Using a local mock via fetch to keep async/await pattern.
-        const res = await fetch(MOCK_API)
-        if (!res.ok) throw new Error('Failed to load creators')
-        const data = await res.json()
-        if (mounted) setCreators(data.slice(0, 10))
-      } catch (err) {
-        if (mounted) setError(err.message)
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
+			if (error) {
+				setError(error);
+			} else {
+				setCreators(data || []);
+			}
+		} catch (err) {
+			setError("Failed to load creators");
+			console.error("Error fetching creators:", err);
+		} finally {
+			setLoading(false);
+		}
+	};
 
-    fetchCreators()
-    return () => { mounted = false }
-  }, [])
+	if (loading) {
+		return (
+			<div className="page-container">
+				<div className="loading-container">
+					<div className="loading-spinner"></div>
+					<p>Loading creators...</p>
+				</div>
+			</div>
+		);
+	}
 
-  if (loading) return <div className="loading">Loading creators...</div>
-  if (error) return <div className="error">Error: {error}</div>
-  if (!creators || creators.length === 0) return <div className="empty">No creators yet.</div>
+	if (error) {
+		return (
+			<div className="page-container">
+				<div className="error-container">
+					<h2>Error Loading Creators</h2>
+					<p>{error}</p>
+					<button onClick={fetchCreators} className="nav-button">
+						Try Again
+					</button>
+				</div>
+			</div>
+		);
+	}
 
-  return (
-    <section className="show-creators">
-      <header className="show-header">
-        <h2>All Creators</h2>
-        <Link to="/add" className="hero-btn primary">Add Creator</Link>
-      </header>
+	if (creators.length === 0) {
+		return (
+			<div className="page-container">
+				<div className="no-creators-text">
+					<h2 style={{ color: "white", marginBottom: "1rem" }}>
+						NO CREATORS YET 😊
+					</h2>
+					<p>Be the first to add a creator to the CreatorVerse!</p>
+					<Link
+						to="/new"
+						className="nav-button"
+						style={{ marginTop: "2rem" }}
+					>
+						Add First Creator
+					</Link>
+				</div>
+			</div>
+		);
+	}
 
-      <div className="creators-grid">
-        {creators.map((c) => (
-          <Link key={c.id} to={`/creators/${c.id}`} className="creator-link">
-            <Card creator={{
-              name: c.name,
-              description: c.description,
-              imageUrl: c.imageUrl,
-              youtubeUrl: c.url
-            }} />
-          </Link>
-        ))}
-      </div>
-    </section>
-  )
-}
+	return (
+		<div className="page-container">
+			<div className="creators-grid">
+				{creators.map((creator) => (
+					<div 
+						key={creator.id} 
+						className="creator-card"
+						style={{
+							backgroundImage: `url(${creator.image})`
+						}}
+					>
+						<div className="card-actions">
+							<Link
+								to={`/creator/${creator.id}`}
+								className="action-icon"
+								title="View Details"
+							>
+								ℹ️
+							</Link>
+							<Link
+								to={`/creator/${creator.id}/edit`}
+								className="action-icon"
+								title="Edit Creator"
+							>
+								✏️
+							</Link>
+						</div>
+						
+						<div className="card-content">
+							<div>
+								<h3 className="creator-name">{creator.name}</h3>
+								<p className="creator-description">
+									{creator.description}
+								</p>
+							</div>
+
+							<div className="creator-socials">
+								{creator.youtube && (
+									<a
+										href={`https://youtube.com/@${creator.youtube}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="social-icon"
+										title="YouTube"
+									>
+										📺
+									</a>
+								)}
+								{creator.twitter && (
+									<a
+										href={`https://twitter.com/${creator.twitter}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="social-icon"
+										title="Twitter"
+									>
+										🐦
+									</a>
+								)}
+								{creator.instagram && (
+									<a
+										href={`https://instagram.com/${creator.instagram}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="social-icon"
+										title="Instagram"
+									>
+										📷
+									</a>
+								)}
+							</div>
+						</div>
+					</div>
+				))}
+			</div>
+		</div>
+	);
+};
+
+export default ShowCreators;

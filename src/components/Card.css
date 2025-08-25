@@ -1,169 +1,237 @@
 /* TODO (priority-ordered checklist):
-   1) Display at least five content creators on the homepage (implement `ShowCreators` and render a list of >=5 items).
-   2) Each creator item must include: name, a link to their channel/page (open in new tab), and a short description.
-   3) All API calls must use async/await (use `fetch` or `axios`); centralize API calls in a data layer or use `src/client.js`.
-   4) Clicking a creator navigates to a detail page with a unique URL (`/creators/:id`) showing name, url, and description (implement `ViewCreator`).
-   5) Provide edit functionality (`EditCreator`) to change name, url, or description; persist changes via API and reflect updates in the list.
-   6) Provide delete functionality with confirmation; after delete, remove the creator from the list and navigate appropriately.
-   7) Add new creators via `AddCreator` (name, url, description); after successful add, ensure the new creator appears in the homepage list.
-   8) Use optimistic UI updates or re-fetch the list after create/edit/delete to keep the UI in sync.
-   9) Move sensitive keys (Supabase or other) to environment variables and never commit them; use `src/client.js` as a lightweight wrapper.
-   10) Add loading, error, and empty states for all list/detail pages and form submissions; add client-side validation for forms.
-   11) Ensure pages are accessible (keyboard focus, ARIA labels) and add `prefers-reduced-motion` support.
-   12) Add tests for the CRUD flows (unit + integration) once the routes and API layer are implemented.
+	 1) Display at least five content creators on the homepage (implement `ShowCreators` and render a list of >=5 items).
+	 2) Each creator item must include: name, a link to their channel/page (open in new tab), and a short description.
+	 3) All API calls must use async/await (use `fetch` or `axios`); centralize API calls in a data layer or use `src/client.js`.
+	 4) Clicking a creator navigates to a detail page with a unique URL (`/creators/:id`) showing name, url, and description (implement `ViewCreator`).
+	 5) Provide edit functionality (`EditCreator`) to change name, url, or description; persist changes via API and reflect updates in the list.
+	 6) Provide delete functionality with confirmation; after delete, remove the creator from the list and navigate appropriately.
+	 7) Add new creators via `AddCreator` (name, url, description); after successful add, ensure the new creator appears in the homepage list.
+	 8) Use optimistic UI updates or re-fetch the list after create/edit/delete to keep the UI in sync.
+	 9) Move sensitive keys (Supabase or other) to environment variables and never commit them; use `src/client.js` as a lightweight wrapper.
+	 10) Add loading, error, and empty states for all list/detail pages and form submissions; add client-side validation for forms.
+	 11) Ensure pages are accessible (keyboard focus, ARIA labels) and add `prefers-reduced-motion` support.
+	 12) Add tests for the CRUD flows (unit + integration) once the routes and API layer are implemented.
 */
 
 /* TODO Card.css next tasks:
-   - Extract colors and spacing into CSS variables in a global theme file
-   - Add better focus styles for accessible keyboard navigation
-   - Consider reduced-motion media query to disable heavy transitions
-   - Add print styles if needed
+	 - Extract colors and spacing into CSS variables in a global theme file
+	 - Add better focus styles for accessible keyboard navigation
+	 - Consider reduced-motion media query to disable heavy transitions
+	 - Add print styles if needed
 */
 
-/* Card Component Styles */
+.creators-grid {
+	display: grid;
+	grid-template-columns: repeat(
+		auto-fill,
+		minmax(320px, 1fr)
+	);
+	gap: 2rem;
+	margin-top: 2rem;
+}
+
 .creator-card {
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 12px;
-  overflow: hidden;
-  max-width: 400px;
-  margin: 1rem;
-  position: relative;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+	position: relative;
+	background: rgba(0, 0, 0, 0.6);
+	backdrop-filter: blur(10px);
+	border-radius: 16px;
+	overflow: hidden;
+	transition: all 0.3s ease;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	height: 400px;
 }
 
 .creator-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+	transform: translateY(-8px);
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+	border-color: rgba(59, 130, 246, 0.3);
 }
 
-.card-image-container {
-  position: relative;
-  height: 200px;
-  overflow: hidden;
+.creator-image {
+	width: 100%;
+	height: 60%;
+	object-fit: cover;
+	transition: transform 0.3s ease;
 }
 
-.card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
+.creator-card:hover .creator-image {
+	transform: scale(1.05);
 }
 
-.creator-card:hover .card-image {
-  transform: scale(1.05);
+.creator-content {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	background: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.9) 0%,
+		rgba(0, 0, 0, 0.7) 70%,
+		transparent 100%
+	);
+	padding: 2rem 1.5rem 1.5rem;
 }
 
-.card-overlay {
-  position: absolute;
-  top: 0;
-  right: 0;
-  padding: 1rem;
-}
-
-.card-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.info-btn,
-.edit-btn {
-  background: rgba(255, 255, 255, 0.9);
-  border: none;
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(10px);
-}
-
-.info-btn:hover,
-.edit-btn:hover {
-  background: white;
-  transform: scale(1.1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.card-content {
-  padding: 1.5rem;
-  color: white;
-  background: rgba(0, 0, 0, 0.6);
+.creator-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1rem;
 }
 
 .creator-name {
-  color: #4A9EFF;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0 0 1rem 0;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+	color: #60a5fa;
+	font-size: 1.5rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	font-family:
+		"TT Rounds Neue Black",
+		"TT Rounds Neue",
+		"Oswald",
+		"Impact",
+		"Anton",
+		"Montserrat",
+		-apple-system,
+		BlinkMacSystemFont,
+		sans-serif;
 }
 
-.social-links {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
+.creator-actions {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
 }
 
-.social-links a {
-  font-size: 1.5rem;
-  text-decoration: none;
-  transition: transform 0.2s ease;
-  opacity: 0.8;
+.action-icon {
+	width: 32px;
+	height: 32px;
+	background: rgba(255, 255, 255, 0.1);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	text-decoration: none;
+	color: white;
+	font-size: 0.8rem;
 }
 
-.social-links a:hover {
-  transform: scale(1.2);
-  opacity: 1;
+.action-icon:hover {
+	background: rgba(255, 255, 255, 0.2);
+	border-color: rgba(255, 255, 255, 0.4);
+	color: white;
+	text-decoration: none;
+	transform: scale(1.1);
 }
 
 .creator-description {
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-  margin: 0;
-  font-size: 0.95rem;
+	color: rgba(255, 255, 255, 0.9);
+	font-size: 0.9rem;
+	line-height: 1.4;
+	margin-bottom: 1rem;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
 }
 
-/* Responsive Design */
+.creator-socials {
+	display: flex;
+	gap: 0.75rem;
+	align-items: center;
+}
+
+.social-icon {
+	width: 36px;
+	height: 36px;
+	background: rgba(59, 130, 246, 0.2);
+	border: 1px solid rgba(59, 130, 246, 0.3);
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	text-decoration: none;
+	font-size: 1.2rem;
+}
+
+.social-icon:hover {
+	background: rgba(59, 130, 246, 0.4);
+	border-color: rgba(59, 130, 246, 0.6);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.youtube-icon {
+	color: #ff0000;
+}
+
+.twitter-icon {
+	color: #1da1f2;
+}
+
+.instagram-icon {
+	color: #e4405f;
+}
+
+.loading-container,
+.error-container {
+	text-align: center;
+	padding: 3rem 2rem;
+	color: white;
+}
+
+.loading-spinner {
+	width: 40px;
+	height: 40px;
+	border: 3px solid rgba(255, 255, 255, 0.3);
+	border-top: 3px solid #60a5fa;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
 @media (max-width: 768px) {
-  .creator-card {
-    max-width: 100%;
-    margin: 0.5rem;
-  }
-  
-  .card-content {
-    padding: 1rem;
-  }
-  
-  .creator-name {
-    font-size: 1.3rem;
-  }
-  
-  .card-image-container {
-    height: 180px;
-  }
+	.creators-grid {
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+		padding: 0 1rem;
+	}
+
+	.creator-card {
+		height: 350px;
+	}
+
+	.creator-content {
+		padding: 1.5rem 1rem 1rem;
+	}
+
+	.creator-name {
+		font-size: 1.2rem;
+	}
 }
 
 @media (max-width: 480px) {
-  .creator-card {
-    margin: 0.25rem;
-  }
-  
-  .card-content {
-    padding: 0.75rem;
-  }
-  
-  .social-links {
-    gap: 0.75rem;
-  }
-  
-  .social-links a {
-    font-size: 1.3rem;
-  }
+	.creator-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.5rem;
+	}
+
+	.creator-actions {
+		align-self: flex-end;
+	}
 }

@@ -22,5 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-src/client.js
+
+# Environment variables
 .env
+.env.local
+.env.development
+.env.production

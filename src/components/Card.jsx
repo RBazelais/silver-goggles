@@ -12,54 +12,164 @@
 // 11) Ensure pages are accessible (keyboard focus, ARIA labels) and add `prefers-reduced-motion` support.
 // 12) Add tests for the CRUD flows (unit + integration) once the routes and API layer are implemented.
 
-import React from 'react';
-import './Card.css';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { getCreators } from "../supabaseClient";
+import "./Card.css";
 
-const Card = ({ creator }) => {
-	const {
-		name = "MAANGCHI",
-		description = "Maangchi got famous for publishing youtube videos of herself making delicious Korean recipes. She's kind of from OG youtube. Definitely worth checking out.",
-		imageUrl = "https://images.unsplash.com/photo-1494790108755-2616b9f2e5e6?auto=format&fit=crop&w=1000&q=80",
-		youtubeUrl = "",
-		twitterUrl = "",
-		instagramUrl = ""
-	} = creator || {};
+const ShowCreators = () => {
+	const [creators, setCreators] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
+
+	useEffect(() => {
+		fetchCreators();
+	}, []);
+
+	const fetchCreators = async () => {
+		try {
+			setLoading(true);
+			const { data, error } = await getCreators();
+
+			if (error) {
+				setError(error);
+			} else {
+				setCreators(data || []);
+			}
+		} catch (err) {
+			setError("Failed to load creators");
+			console.error("Error fetching creators:", err);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	if (loading) {
+		return (
+			<div className="page-container">
+				<div className="loading-container">
+					<div className="loading-spinner"></div>
+					<p>Loading creators...</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="page-container">
+				<div className="error-container">
+					<h2>Error Loading Creators</h2>
+					<p>{error}</p>
+					<button onClick={fetchCreators} className="nav-button">
+						Try Again
+					</button>
+				</div>
+			</div>
+		);
+	}
+
+	if (creators.length === 0) {
+		return (
+			<div className="page-container">
+				<div className="no-creators-text">
+					<h2 style={{ color: "white", marginBottom: "1rem" }}>
+						NO CREATORS YET 😊
+					</h2>
+					<p>Be the first to add a creator to the CreatorVerse!</p>
+					<Link
+						to="/new"
+						className="nav-button"
+						style={{ marginTop: "2rem" }}
+					>
+						Add First Creator
+					</Link>
+				</div>
+			</div>
+		);
+	}
 
 	return (
-		<article className="creator-card" tabIndex={0} aria-label={`Creator ${name}`}>
-		<div className="card-image-container">
-			<img 
-			src={imageUrl} 
-			alt={name}
-			className="card-image"
-			/>
-			<div className="card-overlay">
-			<div className="card-actions">
-				<button className="info-btn" aria-label={`View ${name}`}>ℹ️</button>
-				<button className="edit-btn" aria-label={`Edit ${name}`}>✏️</button>
-			</div>
+		<div className="page-container">
+			<div className="creators-grid">
+				{creators.map((creator) => (
+					<div key={creator.id} className="creator-card">
+						<img
+							src={creator.image}
+							alt={creator.name}
+							className="creator-image"
+							onError={(e) => {
+								e.target.src =
+									"https://via.placeholder.com/320x240/1a1a1a/ffffff?text=Image+Not+Found";
+							}}
+						/>
+
+						<div className="creator-content">
+							<div className="creator-header">
+								<h3 className="creator-name">{creator.name}</h3>
+								<div className="creator-actions">
+									<Link
+										to={`/creator/${creator.id}`}
+										className="action-icon"
+										title="View Details"
+									>
+										ℹ️
+									</Link>
+									<Link
+										to={`/creator/${creator.id}/edit`}
+										className="action-icon"
+										title="Edit Creator"
+									>
+										✏️
+									</Link>
+								</div>
+							</div>
+
+							<p className="creator-description">
+								{creator.description}
+							</p>
+
+							<div className="creator-socials">
+								{creator.youtube && (
+									<a
+										href={`https://youtube.com/@${creator.youtube}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="social-icon youtube-icon"
+										title="YouTube"
+									>
+										📺
+									</a>
+								)}
+								{creator.twitter && (
+									<a
+										href={`https://twitter.com/${creator.twitter}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="social-icon twitter-icon"
+										title="Twitter"
+									>
+										🐦
+									</a>
+								)}
+								{creator.instagram && (
+									<a
+										href={`https://instagram.com/${creator.instagram}`}
+										target="_blank"
+										rel="noopener noreferrer"
+										className="social-icon instagram-icon"
+										title="Instagram"
+									>
+										📷
+									</a>
+								)}
+							</div>
+						</div>
+					</div>
+				))}
 			</div>
 		</div>
-		
-		<div className="card-content">
-			<h3 className="creator-name">{name}</h3>
-			
-			<div className="social-links">
-			{youtubeUrl && (
-				<a href={youtubeUrl} target="_blank" rel="noopener noreferrer" aria-label="YouTube">📺</a>
-			)}
-			{twitterUrl && (
-				<a href={twitterUrl} target="_blank" rel="noopener noreferrer" aria-label="Twitter">🐦</a>
-			)}
-			{instagramUrl && (
-				<a href={instagramUrl} target="_blank" rel="noopener noreferrer" aria-label="Instagram">📷</a>
-			)}
-			</div>
-			
-			<p className="creator-description">{description}</p>
-		</div>
-		</article>
 	);
 };
 
-export default Card;
+export default ShowCreators;

@@ -1,33 +1,63 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createCreator } from "../supabaseClient";
 import './AddCreator.css';
 
 const AddCreator = () => {
 	const navigate = useNavigate();
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState(null);
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		console.log("Form submitted");
+		setLoading(true);
+		setError(null);
 
-		const formData = new FormData(e.target);
-		const creatorData = {
-			name: formData.get("name"),
-			image: formData.get("image"),
-			description: formData.get("description"),
-			youtube: formData.get("youtube"),
-			twitter: formData.get("twitter"),
-			instagram: formData.get("instagram"),
-		};
+		try {
+			const formData = new FormData(e.target);
+			const creatorData = {
+				name: formData.get("name"),
+				image: formData.get("image"),
+				description: formData.get("description"),
+				youtube: formData.get("youtube"),
+				twitter: formData.get("twitter"),
+				instagram: formData.get("instagram"),
+			};
 
-		console.log("Creator data:", creatorData);
+			console.log("Submitting creator data:", creatorData);
 
-		// Save to a database
-		// After successful submission, navigate back to home
-		navigate("/");
+			const { data, error: createError } = await createCreator(creatorData);
+
+			if (createError) {
+				throw new Error(createError);
+			}
+
+			console.log("Creator created successfully:", data);
+			// After successful submission, navigate back to home
+			navigate("/");
+		} catch (err) {
+			console.error("Error creating creator:", err);
+			setError(err.message || "Failed to create creator");
+		} finally {
+			setLoading(false);
+		}
 	};
 
 	return (
 		<div className="form-container">
+			{error && (
+				<div className="error-message" style={{ 
+					background: 'rgba(239, 68, 68, 0.1)', 
+					border: '1px solid rgba(239, 68, 68, 0.3)', 
+					color: '#fca5a5', 
+					padding: '1rem', 
+					borderRadius: '8px', 
+					marginBottom: '1.5rem', 
+					textAlign: 'center' 
+				}}>
+					{error}
+				</div>
+			)}
 			<form onSubmit={handleSubmit} className="creator-form">
 				<div className="form-group">
 					<label htmlFor="name" className="form-label">
@@ -142,8 +172,12 @@ const AddCreator = () => {
 					</div>
 				</div>
 
-				<button type="submit" className="submit-button">
-					SUBMIT
+				<button 
+					type="submit" 
+					className={`submit-button ${loading ? 'loading' : ''}`}
+					disabled={loading}
+				>
+					{loading ? 'SUBMITTING...' : 'SUBMIT'}
 				</button>
 			</form>
 		</div>

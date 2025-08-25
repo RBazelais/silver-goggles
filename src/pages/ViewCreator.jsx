@@ -1,73 +1,215 @@
-// TODO (priority-ordered checklist):
-// 1) Display at least five content creators on the homepage (implement `ShowCreators` and render a list of >=5 items).
-// 2) Each creator item must include: name, a link to their channel/page (open in new tab), and a short description.
-// 3) All API calls must use async/await (use `fetch` or `axios`); centralize API calls in a data layer or use `src/client.js`.
-// 4) Clicking a creator navigates to a detail page with a unique URL (`/creators/:id`) showing name, url, and description (implement `ViewCreator`).
-// 5) Provide edit functionality (`EditCreator`) to change name, url, or description; persist changes via API and reflect updates in the list.
-// 6) Provide delete functionality with confirmation; after delete, remove the creator from the list and navigate appropriately.
-// 7) Add new creators via `AddCreator` (name, url, description); after successful add, ensure the new creator appears in the homepage list.
-// 8) Use optimistic UI updates or re-fetch the list after create/edit/delete to keep the UI in sync.
-// 9) Move sensitive keys (Supabase or other) to environment variables and never commit them; use `src/client.js` as a lightweight wrapper.
-// 10) Add loading, error, and empty states for all list/detail pages and form submissions; add client-side validation for forms.
-// 11) Ensure pages are accessible (keyboard focus, ARIA labels) and add `prefers-reduced-motion` support.
-// 12) Add tests for the CRUD flows (unit + integration) once the routes and API layer are implemented.
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { getCreator, deleteCreator } from "../supabaseClient";
+import "./ViewCreator.css";
 
-// TODO ViewCreator page:
-// - Implement creator detail view: large hero image, social links, description, related creators
-// - Fetch creator by id from Supabase and handle loading/error states
-// - Add link to edit and back to list
+const ViewCreator = () => {
+	const { id } = useParams();
+	const navigate = useNavigate();
+	const [creator, setCreator] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState("");
+	const [deleting, setDeleting] = useState(false);
 
-import React, { useEffect, useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+	useEffect(() => {
+		fetchCreator();
+	}, [id]);
 
-const MOCK_API = '/api/mock-creators.json'
+	const fetchCreator = async () => {
+		try {
+			setLoading(true);
+			const { data, error } = await getCreator(id);
 
-export default function ViewCreator() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const [creator, setCreator] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+			if (error) {
+				setError(error);
+			} else if (data) {
+				setCreator(data);
+			} else {
+				setError("Creator not found");
+			}
+		} catch (err) {
+			setError("Failed to load creator");
+			console.error("Error fetching creator:", err);
+		} finally {
+			setLoading(false);
+		}
+	};
 
-  useEffect(() => {
-    let mounted = true
-    async function fetchCreator() {
-      setLoading(true)
-      try {
-        const res = await fetch(MOCK_API)
-        if (!res.ok) throw new Error('Failed to fetch creator')
-        const data = await res.json()
-        const found = data.find((c) => String(c.id) === String(id))
-        if (mounted) setCreator(found || null)
-      } catch (err) {
-        if (mounted) setError(err.message)
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
+	const handleDelete = async () => {
+		if (
+			!window.confirm(
+				`Are you sure you want to delete ${creator.name}? This action cannot be undone.`,
+			)
+		) {
+			return;
+		}
 
-    fetchCreator()
-    return () => { mounted = false }
-  }, [id])
+		try {
+			setDeleting(true);
+			const { error } = await deleteCreator(id);
 
-  if (loading) return <div className="loading">Loading creator...</div>
-  if (error) return <div className="error">Error: {error}</div>
-  if (!creator) return <div className="empty">Creator not found. <button onClick={() => navigate('/creators')}>Back to list</button></div>
+			if (error) {
+				alert(`Failed to delete creator: ${error}`);
+			} else {
+				navigate("/", { replace: true });
+			}
+		} catch (err) {
+			console.error("Error deleting creator:", err);
+			alert("An unexpected error occurred while deleting the creator.");
+		} finally {
+			setDeleting(false);
+		}
+	};
 
-  return (
-    <section className="view-creator" style={{padding: '2rem', color: 'white'}}>
-      <header style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-        <h2>{creator.name}</h2>
-        <div>
-          <Link to={`/edit/${creator.id}`} className="hero-btn secondary" style={{marginRight: '1rem'}}>Edit</Link>
-          <a href={creator.url} target="_blank" rel="noopener noreferrer" className="hero-btn primary">Visit</a>
-        </div>
-      </header>
+	if (loading) {
+		return (
+			<div className="modal-overlay">
+				<div className="creator-detail">
+					<div className="loading-container">
+						<div className="loading-spinner"></div>
+						<p>Loading creator...</p>
+					</div>
+				</div>
+			</div>
+		);
+	}
 
-      <div style={{marginTop: '1rem'}}>
-        <img src={creator.imageUrl} alt={creator.name} style={{maxWidth: '100%', borderRadius: 8}} />
-        <p style={{marginTop: '1rem'}}>{creator.description}</p>
-      </div>
-    </section>
-  )
-}
+	if (error || !creator) {
+		return (
+			<div className="modal-overlay">
+				<div className="creator-detail">
+					<div className="error-container">
+						<h2>Creator Not Found</h2>
+						<p>
+							{error ||
+								"The creator you're looking for doesn't exist."}
+						</p>
+						<Link to="/" className="nav-button">
+							Back to All Creators
+						</Link>
+					</div>
+				</div>
+			</div>
+		);
+	}
+
+	return (
+		<div className="modal-overlay" onClick={(e) => {
+			if (e.target === e.currentTarget) {
+				navigate("/");
+			}
+		}}>
+			<div className="creator-detail">
+				<div className="creator-header">
+					<img
+						src={creator.image}
+						alt={creator.name}
+						className="creator-image"
+						onError={(e) => {
+							e.target.src =
+								"https://via.placeholder.com/250x250?text=Image+Not+Found";
+						}}
+					/>
+					<div className="creator-info">
+						<h1 className="creator-name">{creator.name}</h1>
+						<div className="creator-description">
+							<p>{creator.description}</p>
+						</div>
+					</div>
+				</div>
+
+				<div className="social-links">
+					<h3>Social Media Links</h3>
+					<div className="social-list">
+						{creator.youtube && (
+							<div className="social-item">
+								<span className="social-icon">📺</span>
+								<div className="social-info">
+									<div className="social-platform">
+										YouTube
+									</div>
+									<div className="social-handle">
+										@{creator.youtube}
+									</div>
+								</div>
+								<a
+									href={`https://youtube.com/@${creator.youtube}`}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="social-link"
+								>
+									Visit
+								</a>
+							</div>
+						)}
+
+						{creator.twitter && (
+							<div className="social-item">
+								<span className="social-icon">🐦</span>
+								<div className="social-info">
+									<div className="social-platform">
+										Twitter
+									</div>
+									<div className="social-handle">
+										@{creator.twitter}
+									</div>
+								</div>
+								<a
+									href={`https://twitter.com/${creator.twitter}`}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="social-link"
+								>
+									Visit
+								</a>
+							</div>
+						)}
+
+						{creator.instagram && (
+							<div className="social-item">
+								<span className="social-icon">📷</span>
+								<div className="social-info">
+									<div className="social-platform">
+										Instagram
+									</div>
+									<div className="social-handle">
+										@{creator.instagram}
+									</div>
+								</div>
+								<a
+									href={`https://instagram.com/${creator.instagram}`}
+									target="_blank"
+									rel="noopener noreferrer"
+									className="social-link"
+								>
+									Visit
+								</a>
+							</div>
+						)}
+					</div>
+				</div>
+
+				<div className="action-buttons">
+					<Link to="/" className="nav-button secondary">
+						← Back to All
+					</Link>
+					<Link
+						to={`/creator/${creator.id}/edit`}
+						className="nav-button"
+					>
+						Edit Creator
+					</Link>
+					<button
+						onClick={handleDelete}
+						disabled={deleting}
+						className="nav-button danger"
+					>
+						{deleting ? "Deleting..." : "Delete Creator"}
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+};
+
+export default ViewCreator;

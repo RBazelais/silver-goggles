@@ -73,6 +73,7 @@
 	border: none;
 	border-radius: 8px;
 	background: rgba(255, 255, 255, 0.95);
+	color: #000000;
 	font-size: 1rem;
 	transition: all 0.3s ease;
 	font-family: inherit;
@@ -82,10 +83,15 @@
 .form-textarea:focus {
 	outline: none;
 	background: rgba(255, 255, 255, 1);
+	color: #000000;
 	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
 
 .form-input::placeholder {
+	color: rgba(0, 0, 0, 0.5);
+}
+
+.form-textarea::placeholder {
 	color: rgba(0, 0, 0, 0.5);
 }
 
