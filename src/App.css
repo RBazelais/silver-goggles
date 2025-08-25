@@ -64,7 +64,7 @@ body {
 	text-align: center;
 	position: relative;
 	z-index: 2;
-	padding: 2rem;
+	padding: 10rem;
 }
 
 .main-title {
@@ -85,7 +85,7 @@ body {
 	font-weight: 900;
 	color: white;
 	text-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
-	margin-bottom: 4rem;
+	margin-bottom: 6rem;
 	letter-spacing: -0.02em;
 	line-height: 0.85;
 	font-stretch: condensed;
