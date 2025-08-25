@@ -1,0 +1,351 @@
+/* TODO (priority-ordered checklist):
+   1) Display at least five content creators on the homepage (implement `ShowCreators` and render a list of >=5 items).
+   2) Each creator item must include: name, a link to their channel/page (open in new tab), and a short description.
+   3) All API calls must use async/await (use `fetch` or `axios`); centralize API calls in a data layer or use `src/client.js`.
+   4) Clicking a creator navigates to a detail page with a unique URL (`/creators/:id`) showing name, url, and description (implement `ViewCreator`).
+   5) Provide edit functionality (`EditCreator`) to change name, url, or description; persist changes via API and reflect updates in the list.
+   6) Provide delete functionality with confirmation; after delete, remove the creator from the list and navigate appropriately.
+   7) Add new creators via `AddCreator` (name, url, description); after successful add, ensure the new creator appears in the homepage list.
+   8) Use optimistic UI updates or re-fetch the list after create/edit/delete to keep the UI in sync.
+   9) Move sensitive keys (Supabase or other) to environment variables and never commit them; use `src/client.js` as a lightweight wrapper.
+   10) Add loading, error, and empty states for all list/detail pages and form submissions; add client-side validation for forms.
+   11) Ensure pages are accessible (keyboard focus, ARIA labels) and add `prefers-reduced-motion` support.
+   12) Add tests for the CRUD flows (unit + integration) once the routes and API layer are implemented.
+*/
+
+/* TODO AddCreator.css next tasks:
+   - Move repeating hero/background styles into shared utilities
+   - Add ARIA and focus-visible styles for better accessibility
+   - Add prefers-reduced-motion handling for animations and hover effects
+*/
+
+/* AddCreator Component Styles */
+.add-creator-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+/* Hero Banner Styles */
+.hero-banner {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6)),
+              url('https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding: 4rem 2rem 2rem;
+  position: relative;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, rgba(0, 0, 0, 0.8) 100%);
+  pointer-events: none;
+}
+
+.hero-content {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.hero-title {
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900;
+  color: white;
+  margin: 0 0 3rem 0;
+  letter-spacing: 0.1em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+  font-family: 'Arial Black', Arial, sans-serif;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.hero-btn {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.hero-btn:hover::before {
+  left: 100%;
+}
+
+.primary-btn {
+  background: #4A90E2;
+  color: white;
+  box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+}
+
+.primary-btn:hover {
+  background: #357ABD;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.secondary-btn {
+  background: #5A6C7D;
+  color: white;
+  box-shadow: 0 4px 15px rgba(90, 108, 125, 0.3);
+}
+
+.secondary-btn:hover {
+  background: #495761;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(90, 108, 125, 0.4);
+}
+
+.secondary-btn.active {
+  background: #357ABD;
+  box-shadow: 0 4px 15px rgba(53, 122, 189, 0.4);
+}
+
+/* Form Container */
+.form-container {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 100%;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 2rem auto;
+  position: relative;
+  z-index: 2;
+}
+
+.creator-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.social-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.social-icon {
+  font-size: 1.2rem;
+}
+
+.form-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  margin: 0;
+  font-style: italic;
+}
+
+.form-group input,
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #4A90E2;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.social-section {
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.social-title {
+  color: #4A90E2;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: 0.05em;
+}
+
+.social-description {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  margin: 0 0 1.5rem 0;
+  font-style: italic;
+}
+
+.submit-btn {
+  background: #4A90E2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.submit-btn:hover::before {
+  left: 100%;
+}
+
+.submit-btn:hover {
+  background: #357ABD;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+/* Validation styles */
+.form-group input:invalid,
+.form-group textarea:invalid {
+  border-color: rgba(255, 107, 107, 0.5);
+}
+
+.form-group input:valid,
+.form-group textarea:valid {
+  border-color: rgba(74, 144, 226, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hero-banner {
+    padding: 3rem 1rem 1.5rem;
+  }
+  
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .hero-btn {
+    min-width: 250px;
+  }
+  
+  .form-container {
+    padding: 1.5rem;
+    margin: 1.5rem 1rem;
+  }
+  
+  .creator-form {
+    gap: 1.25rem;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    padding: 0.625rem;
+  }
+  
+  .submit-btn {
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-banner {
+    padding: 2rem 0.5rem 1rem;
+  }
+  
+  .hero-title {
+    margin-bottom: 2rem;
+  }
+  
+  .hero-btn {
+    min-width: 200px;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .form-container {
+    padding: 1rem;
+    margin: 1rem 0.5rem;
+  }
+  
+  .social-label {
+    font-size: 0.9rem;
+  }
+  
+  .social-icon {
+    font-size: 1.1rem;
+  }
+}

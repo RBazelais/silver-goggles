@@ -1,0 +1,169 @@
+/* TODO (priority-ordered checklist):
+   1) Display at least five content creators on the homepage (implement `ShowCreators` and render a list of >=5 items).
+   2) Each creator item must include: name, a link to their channel/page (open in new tab), and a short description.
+   3) All API calls must use async/await (use `fetch` or `axios`); centralize API calls in a data layer or use `src/client.js`.
+   4) Clicking a creator navigates to a detail page with a unique URL (`/creators/:id`) showing name, url, and description (implement `ViewCreator`).
+   5) Provide edit functionality (`EditCreator`) to change name, url, or description; persist changes via API and reflect updates in the list.
+   6) Provide delete functionality with confirmation; after delete, remove the creator from the list and navigate appropriately.
+   7) Add new creators via `AddCreator` (name, url, description); after successful add, ensure the new creator appears in the homepage list.
+   8) Use optimistic UI updates or re-fetch the list after create/edit/delete to keep the UI in sync.
+   9) Move sensitive keys (Supabase or other) to environment variables and never commit them; use `src/client.js` as a lightweight wrapper.
+   10) Add loading, error, and empty states for all list/detail pages and form submissions; add client-side validation for forms.
+   11) Ensure pages are accessible (keyboard focus, ARIA labels) and add `prefers-reduced-motion` support.
+   12) Add tests for the CRUD flows (unit + integration) once the routes and API layer are implemented.
+*/
+
+/* TODO Card.css next tasks:
+   - Extract colors and spacing into CSS variables in a global theme file
+   - Add better focus styles for accessible keyboard navigation
+   - Consider reduced-motion media query to disable heavy transitions
+   - Add print styles if needed
+*/
+
+/* Card Component Styles */
+.creator-card {
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 400px;
+  margin: 1rem;
+  position: relative;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.creator-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.card-image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.creator-card:hover .card-image {
+  transform: scale(1.05);
+}
+
+.card-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 1rem;
+}
+
+.card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.info-btn,
+.edit-btn {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.info-btn:hover,
+.edit-btn:hover {
+  background: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-content {
+  padding: 1.5rem;
+  color: white;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.creator-name {
+  color: #4A9EFF;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 1rem 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.social-links {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.social-links a {
+  font-size: 1.5rem;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+  opacity: 0.8;
+}
+
+.social-links a:hover {
+  transform: scale(1.2);
+  opacity: 1;
+}
+
+.creator-description {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .creator-card {
+    max-width: 100%;
+    margin: 0.5rem;
+  }
+  
+  .card-content {
+    padding: 1rem;
+  }
+  
+  .creator-name {
+    font-size: 1.3rem;
+  }
+  
+  .card-image-container {
+    height: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .creator-card {
+    margin: 0.25rem;
+  }
+  
+  .card-content {
+    padding: 0.75rem;
+  }
+  
+  .social-links {
+    gap: 0.75rem;
+  }
+  
+  .social-links a {
+    font-size: 1.3rem;
+  }
+}

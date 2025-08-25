@@ -1,0 +1,103 @@
+/* TODO (priority-ordered checklist):
+   1) Display at least five content creators on the homepage (implement `ShowCreators` and render a list of >=5 items).
+   2) Each creator item must include: name, a link to their channel/page (open in new tab), and a short description.
+   3) All API calls must use async/await (use `fetch` or `axios`); centralize API calls in a data layer or use `src/client.js`.
+   4) Clicking a creator navigates to a detail page with a unique URL (`/creators/:id`) showing name, url, and description (implement `ViewCreator`).
+   5) Provide edit functionality (`EditCreator`) to change name, url, or description; persist changes via API and reflect updates in the list.
+   6) Provide delete functionality with confirmation; after delete, remove the creator from the list and navigate appropriately.
+   7) Add new creators via `AddCreator` (name, url, description); after successful add, ensure the new creator appears in the homepage list.
+   8) Use optimistic UI updates or re-fetch the list after create/edit/delete to keep the UI in sync.
+   9) Move sensitive keys (Supabase or other) to environment variables and never commit them; use `src/client.js` as a lightweight wrapper.
+   10) Add loading, error, and empty states for all list/detail pages and form submissions; add client-side validation for forms.
+   11) Ensure pages are accessible (keyboard focus, ARIA labels) and add `prefers-reduced-motion` support.
+   12) Add tests for the CRUD flows (unit + integration) once the routes and API layer are implemented.
+*/
+
+/* TODO index.css next tasks:
+   - Centralize CSS variables for color palette, spacing, and fonts in :root
+   - Consider removing or replacing @import with locally hosted styles for performance
+   - Add prefers-reduced-motion media query to disable non-essential animations
+*/
+
+@import "@picocss/pico";
+
+/* Load local TTF for headings used by the hero title */
+@font-face {
+  font-family: "TT Rounds ExtraBold";
+  src: url("./assets/TT Rounds Neue Trial ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Heading font variable (uses local TTF above) */
+  --heading-font: "TT Rounds ExtraBold", 'Arial Black', Arial, sans-serif;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}

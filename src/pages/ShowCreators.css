@@ -1,0 +1,33 @@
+.show-creators {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: white;
+}
+
+.show-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.creators-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.creator-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.loading,
+.error,
+.empty {
+  color: white;
+  text-align: center;
+  padding: 2rem;
+}

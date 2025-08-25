@@ -1,0 +1,202 @@
+/* TODO App.css next tasks:
+   - Move repeated background images and gradients into variables or utility classes
+   - Add prefers-reduced-motion handling to reduce animations
+   - Consider making background-attachment: fixed optional on mobile for performance
+   - Add CSS variables for colors and fonts in :root
+*/
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	place-items: normal;
+	display: block;
+}
+
+.app-container {
+	min-height: 100vh;
+	background-color: #0a0a0a;
+	background-image:
+		linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)),
+		url("https://assets.science.nasa.gov/content/dam/science/esd/eo/content-feature/nightlights/images/media/BlackMarble_2016_EuroAfrica_composite.png");
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	overflow: hidden;
+}
+
+.app-container::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient(
+		ellipse at center,
+		rgba(0, 50, 150, 0.1) 0%,
+		rgba(0, 0, 0, 0.3) 100%
+	);
+	z-index: 1;
+}
+
+.hero-section {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	position: relative;
+	z-index: 2;
+	padding: 2rem;
+}
+
+.main-title {
+	font-family:
+		"TT Rounds Neue Black",
+		"TT Rounds Neue",
+		"Oswald",
+		"Impact",
+		"Anton",
+		"Montserrat",
+		-apple-system,
+		BlinkMacSystemFont,
+		sans-serif;
+	font-size: clamp(2.5rem, 12vw, 10rem);
+	font-weight: 900;
+	color: white;
+	text-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
+	margin-bottom: 4rem;
+	letter-spacing: -0.02em;
+	line-height: 0.85;
+	font-stretch: condensed;
+	animation: fadeInDown 1s ease-out;
+}
+
+.button-container {
+	display: flex;
+	gap: 2rem;
+	justify-content: center;
+	flex-wrap: wrap;
+	animation: fadeInUp 1s ease-out 0.3s both;
+}
+
+.hero-button {
+	background: rgba(59, 130, 246, 0.85);
+	border: none;
+	border-radius: 8px;
+	color: white;
+	padding: 1.2rem 2.8rem;
+	font-size: 1rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	min-width: 220px;
+	font-family: inherit;
+}
+
+.hero-button:hover {
+	background: rgba(59, 130, 246, 1);
+	transform: translateY(-2px);
+	box-shadow: 0 12px 40px rgba(59, 130, 246, 0.4);
+	color: white;
+}
+
+.hero-button:focus {
+	outline: none;
+	box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+.divider-line {
+	width: 100%;
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		rgba(255, 255, 255, 0.3) 50%,
+		transparent
+	);
+	position: relative;
+	z-index: 2;
+}
+
+.bottom-section {
+	position: relative;
+	z-index: 2;
+	text-align: center;
+	padding: 3rem 2rem;
+	background: rgba(0, 0, 0, 0.2);
+	animation: fadeInUp 1s ease-out 0.6s both;
+}
+
+.no-creators-text {
+	font-family:
+		"TT Rounds Neue",
+		"Oswald",
+		"Montserrat",
+		-apple-system,
+		BlinkMacSystemFont,
+		sans-serif;
+	font-size: 1.1rem;
+	font-weight: 400;
+	color: rgba(255, 255, 255, 0.8);
+	letter-spacing: 0.02em;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+	.button-container {
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.hero-button {
+		min-width: 280px;
+	}
+
+	.hero-section {
+		padding: 1rem;
+	}
+
+	.main-title {
+		margin-bottom: 3rem;
+	}
+
+	.bottom-section {
+		padding: 2rem 1rem;
+	}
+}
+
+/* Animations */
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fadeInDown {
+	from {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
