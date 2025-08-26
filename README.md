@@ -30,7 +30,7 @@ The following **optional** features are implemented:
 
 Here's a walkthrough of implemented required features:
 
-![Video Walkthrough](https://i.imgur.com/nfzakai.gif)
+![Video Walkthrough](https://imgur.com/nfzakai)
 
 GIF created with ... LICEcap
 
