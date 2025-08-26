@@ -4,7 +4,7 @@ Submitted by: **Rachel Bazelais**
 
 About this web app: **Creatorverse is a React web app for discovering, viewing, and managing your favorite content creators. Browse a visually engaging grid of creator cards, view detailed profiles with social links, and easily add, edit, or remove creators. Built with a modern UI, Supabase backend, and responsive design for a seamless experience.**
 
-Time spent: 23 hours
+Time spent: 26 hours
 
 ## Required Features
 
@@ -30,13 +30,13 @@ The following **optional** features are implemented:
 
 Here's a walkthrough of implemented required features:
 
-👉🏿![Video Walkthrough](https://i.imgur.com/nfzakai.gif)
+![Video Walkthrough](https://i.imgur.com/nfzakai.gif)
 
 GIF created with ... LICEcap
 
 ## Notes
 
-I had some trouble with getting the animations to work
+I had some trouble with getting the animations to work but it all worked out
 
 ## License
 
