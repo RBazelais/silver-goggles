@@ -8,8 +8,8 @@
 /* Load local TTF for headings used by the hero title */
 @font-face {
 	font-family: "TT Rounds ExtraBold";
-	src: url("./assets/TT Rounds Neue Trial ExtraBold.ttf") format("truetype");
-	font-weight: 800;
+	src: url("./assets/fonts/TT Rounds Neue Trial ExtraBold.ttf") format("truetype");
+	font-weight: 600;
 	font-style: normal;
 	font-display: swap;
 }
@@ -82,7 +82,7 @@ body {
 		BlinkMacSystemFont,
 		sans-serif;
 	font-size: clamp(2.5rem, 12vw, 10rem);
-	font-weight: 900;
+	font-weight: 600;
 	color: white;
 	text-shadow: 0 4px 30px rgba(0, 0, 0, 0.8);
 	margin-bottom: 6rem;
