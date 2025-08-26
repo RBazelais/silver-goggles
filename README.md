@@ -31,7 +31,7 @@ The following **optional** features are implemented:
 Here's a walkthrough of implemented required features:
 
 ![Video Walkthrough](https://i.imgur.com/UGNGYka.gif)
-![Video Walkthrough](src/assets/creatorverseV5.gif)
+![Video Walkthrough](src/assets/CreatorverseV5.gif)
 
 GIF created with LICEcap
 
