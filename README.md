@@ -30,9 +30,9 @@ The following **optional** features are implemented:
 
 Here's a walkthrough of implemented required features:
 
-![Video Walkthrough](https://imgur.com/nfzakai)
+![Video Walkthrough](https://i.imgur.com/nfzakai.gif)
 
-GIF created with ... LICEcap
+GIF created with LICEcap
 
 ## Notes
 
